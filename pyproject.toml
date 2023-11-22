@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "mvgl"
+version = "0.1.0"
+description = "A tool to learn the topology of mutliview graphs from smooth graph signals."
+authors = ["Abdullah Karaaslanli"]
+license = "GNU General Public License v3.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
