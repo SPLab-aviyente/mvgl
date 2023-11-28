@@ -340,7 +340,10 @@ files = [
     {file = "tzdata-2023.3.tar.gz", hash = "sha256:11ef1e08e54acb0d4f95bdb1be05da659673de4acbd21bf9c69e94cc5e907a3a"},
 ]
 
+[extras]
+scripts = ["pandas"]
+
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "81709f949a0e1fc3fc0ed6b386e1a652f71e029b0dca5944aa121b775dd2d607"
+content-hash = "948f55acc45d2e44117d2f2e979d8b9c2a2deeb2758bbbfe0b9a48f78100d079"
