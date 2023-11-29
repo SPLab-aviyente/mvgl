@@ -6,6 +6,8 @@ A tool to learn the topology of mutliview graphs from smooth graph signals.
 
 ## Usage
 
+## Data
+
 ## License
 
 `mvgl` was created by Abdullah Karaaslanli. It is licensed under the terms of
