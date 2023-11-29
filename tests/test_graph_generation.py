@@ -53,3 +53,29 @@ def test_gen_consensus_graph_reproduciblity():
 
     assertion_msg = "Consensus graph generation is not reproducible when setting seed."
     assert nx.utils.graphs_equal(G1, G2), assertion_msg
+
+def test_view_graphs_connected():
+    Gc = graph.gen_consensus_graph(n_nodes=10, graph_generator="ba", m = 2)
+    try:
+        Gv = graph.gen_views(n_views=3, Gc=Gc, perturbation=0.1)
+        for G in Gv:
+            assert nx.is_connected(G), "Generated view graphs are not connected."
+    except exceptions.MaxIterReachedException:
+        pass
+    except:
+        assert False, "Wrong exception raised."
+
+def test_gen_views_reproducibility():
+    rng = np.random.default_rng(seed=1)
+    Gc = graph.gen_consensus_graph(n_nodes=10, graph_generator="er", p = 0.1,
+                                   rng=rng)
+    Gv1 = graph.gen_views(n_views=3, Gc=Gc, perturbation=0.1, rng=rng)
+
+    rng = np.random.default_rng(seed=1)
+    Gc = graph.gen_consensus_graph(n_nodes=10, graph_generator="er", p = 0.1,
+                                   rng=rng)
+    Gv2 = graph.gen_views(n_views=3, Gc=Gc, perturbation=0.1, rng=rng)
+
+    for i in range(len(Gv1)):
+        assertion_msg = "Consensus graph generation is not reproducible when setting seed."
+        assert nx.utils.graphs_equal(Gv1[i], Gv2[i]), assertion_msg
