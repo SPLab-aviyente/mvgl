@@ -1,0 +1,2 @@
+class MaxIterReachedException(Exception):
+    pass
