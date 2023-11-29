@@ -1,13 +1,12 @@
+import numpy as np
+
 from mvgl.data import graph
 
 def gen_simulated_data(n_nodes, n_views, n_signals, graph_generator, p, m, 
-                       perturbation, noise):
-    Gc = graph.gen_consensus_graph(n_nodes, graph_generator, p, m)
-    
-    # if "weight" in consensus_gen:
-    #     data.assign_edge_weights(Gc, consensus_gen, n_views)
-
-    # Gv = data.gen_views(n_views, Gc, consensus_gen, view_gen, r+1)
+                       perturbation, noise, seed=None):
+    rng = np.random.default_rng(seed)
+    Gc = graph.gen_consensus_graph(n_nodes, graph_generator, p, m, rng)
+    # Gv = graph.gen_views(n_views, Gc, perturbation)
 
     # wc_gt, wv_gt = data.vectorize_graphs(Gc, Gv)
 
