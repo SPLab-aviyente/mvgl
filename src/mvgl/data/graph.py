@@ -147,8 +147,9 @@ def gen_views(n_views, Gc, perturbation, rng=None):
         The consensus graph.
     perturbation : float
         Fraction of edges to swap. 
-    rng : _type_, optional
-        _description_, by default None
+    rng : np.random.Generator, optional
+        Random number generator. If one wants the function to return the same 
+        output every time, this needs to be set. By default None
 
     Returns
     -------
