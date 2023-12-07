@@ -77,5 +77,5 @@ def test_gen_views_reproducibility():
     Gv2 = graph.gen_views(n_views=3, Gc=Gc, perturbation=0.1, rng=rng)
 
     for i in range(len(Gv1)):
-        assertion_msg = "Consensus graph generation is not reproducible when setting seed."
+        assertion_msg = "View graph generation is not reproducible when setting seed."
         assert nx.utils.graphs_equal(Gv1[i], Gv2[i]), assertion_msg
