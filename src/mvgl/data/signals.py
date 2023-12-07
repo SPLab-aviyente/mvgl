@@ -2,23 +2,6 @@ import numpy as np
 import networkx as nx
 from scipy import linalg
 
-# def gen_graph_signals(n_signals, Gv, fltr, noise, seed=None):
-#     n_views = len(Gv)
-
-#     if not isinstance(n_signals, list):
-#         n_signals = [n_signals]*n_views
-
-#     Xv = []
-#     for s in range(n_views):
-#         X = signal_gen.gen_smooth_gs(Gv[s], n_signals[s], filter=fltr, 
-#                                      noise_amount=noise, 
-#                                      seed=rng_seed(seed, 234*s))
-#         Xv.append(X)
-
-#     return Xv
-
-
-
 def gen_smooth_gs(G, n_signals, filter="gaussian", alpha=10, noise_amount=0.1, 
                   rng=None):
     """Generate a set of smooth graph signals from a given graph.
