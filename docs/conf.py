@@ -21,7 +21,8 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
 ]
-autoapi_dirs = ["../src"]
+autoapi_dirs = ["../src/mvgl"]
+autoapi_add_toctree_entry = False
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
