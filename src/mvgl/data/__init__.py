@@ -8,11 +8,12 @@ from mvgl.data import signals
 def gen_simulations_save_path(n_nodes, n_views, n_signals, graph_generator, 
                               perturbation, noise, p = None, m = None,
                               base_dir = Path("data", "simulations")):
-    """Generate a path for a simulations from its parameters.
+    """Generate a path for a simulation from its parameters.
 
     This function generates a path under `base_dir` that can be used to save 
     simulations related outputs such as generated graphs and signals, or outputs 
-    of a method when they process simulated data. 
+    of a method when they process simulated data. Note that this function 
+    does not create the directory the generated path refers to.
 
     Parameters
     ----------
@@ -48,6 +49,7 @@ def gen_simulations_save_path(n_nodes, n_views, n_signals, graph_generator,
          "n_signals_500", "er_0.10", "edge_swap_0.10", "noise_0.10")
 
     When `n_signals` is a list:
+    
     >>> gen_simulations_save_path(100, 5, [500, 400], "er", 0.1, 0.1, p=0.1)
     Path("data", "simulations", "n_nodes_100", "n_views_5", 
          "n_signals_500_400", "er_0.10", "edge_swap_0.10", "noise_0.10")
@@ -74,7 +76,7 @@ def gen_simulations_save_path(n_nodes, n_views, n_signals, graph_generator,
                 f"noise_{noise:.2f}")
 
 def gen_simulated_data(n_nodes, n_views, n_signals, graph_generator, perturbation, 
-                       noise, p = None, m = None, seed=None):
+                       noise, p = None, m = None, seed = None):
     """Generate simulated multiview graph signals.
 
     Data is generated first by drawing a consensus graph :math:`G` using
