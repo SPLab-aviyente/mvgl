@@ -1,4 +1,5 @@
 import numpy as np
+import networkx as nx
 
 from scipy.sparse import csr_array
 
@@ -28,3 +29,23 @@ def rowsum_mat(n):
     cols = np.concatenate((np.arange(M), np.arange(M)))
 
     return csr_array((np.ones((2*M, )), (rows, cols)), shape=(n, M))
+
+def vectorize_a_graph(G):
+    """Returns the upper triangular part of the adjacency matrix of a graph as 
+    a vector.
+
+    Parameters
+    ----------
+    G : nx.Graph
+        Input graph.
+
+    Returns
+    -------
+    w : np.array
+        Output vector as a numpy array.
+    """
+    n_nodes = G.number_of_nodes()
+
+    w = nx.to_numpy_array(G)[np.triu_indices(n_nodes, k=1)]
+
+    return w
