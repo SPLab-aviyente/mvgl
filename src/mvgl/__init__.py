@@ -1,4 +1,5 @@
 from mvgl.data import gen_simulated_data
+from mvgl.graphlearning.multiview import learn_multiview_graph
 
 # read version from installed package
 from importlib.metadata import version
