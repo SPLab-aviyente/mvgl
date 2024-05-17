@@ -1,6 +1,8 @@
 import numpy as np
 import networkx as nx
-from scipy import linalg
+from scipy import linalg, sparse
+
+from mvgl import _input_checks
 
 def gen_smooth_gs(G, n_signals, filter="gaussian", alpha=10, noise_amount=0.1, 
                   rng=None):
@@ -48,8 +50,7 @@ def gen_smooth_gs(G, n_signals, filter="gaussian", alpha=10, noise_amount=0.1,
            Artificial Intelligence and Statistics. PMLR, 2016.
     """
     
-    if rng is None: 
-        rng = np.random.default_rng()
+    rng = _input_checks._check_rng(rng)
 
     n_nodes = G.number_of_nodes()
 
@@ -82,3 +83,40 @@ def gen_smooth_gs(G, n_signals, filter="gaussian", alpha=10, noise_amount=0.1,
     X += E*(noise_amount*X_norm/E_norm)
 
     return X
+
+def gen_stationary_gs(G: nx.Graph, n_signals: int, filter_degree: int=5, 
+                      noise_amount: float=0.1, rng: int | np.random.Generator = None):
+    
+    rng = _input_checks._check_rng(rng)
+
+    n_nodes = G.number_of_nodes()
+    laplacian = nx.laplacian_matrix(G).astype("float")
+
+    # Normalize the laplacian: Not sure about this, but signals values are too 
+    # big otherwise
+    max_eig = sparse.linalg.eigsh(laplacian, k=1)[0][0]
+    laplacian /= max_eig
+
+    # Sample filter coefficients
+    filter_coeffs = rng.normal(size=filter_degree)
+
+    # Construct the graph filter
+    filter_mat = np.zeros(shape=(n_nodes, n_nodes))
+    curr_term = sparse.identity(n_nodes, format="csr")
+    for i in range(filter_degree):
+        filter_mat += filter_coeffs[i]*curr_term
+        curr_term = curr_term@laplacian
+
+    # Generate stationary signals
+    white_noise = rng.multivariate_normal(
+        np.zeros(n_nodes), np.eye(n_nodes), n_signals
+    ).T 
+    signals = filter_mat@white_noise
+
+    # Add noise
+    signals_norm = np.linalg.norm(signals)
+    awgn = rng.normal(0, 1, signals.shape)
+    awgn_norm = np.linalg.norm(awgn)
+    signals += awgn*(noise_amount*signals_norm/awgn_norm)
+
+    return signals

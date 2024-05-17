@@ -4,6 +4,8 @@ import numpy as np
 
 from mvgl.data import graph
 from mvgl.data import signals
+from mvgl.data.graph import gen_consensus_graph, gen_views
+from mvgl.data.signals import gen_smooth_gs, gen_stationary_gs
 
 def gen_simulations_save_path(n_nodes, n_views, n_signals, graph_generator, 
                               perturbation, noise, p = None, m = None,

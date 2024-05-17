@@ -7,7 +7,7 @@ import networkx as nx
 from scipy.sparse import csr_array
 
 def rowsum_mat(n):
-    """Construct row-sum matrix for a symmetric zero-diagonal matrix.
+    r"""Construct row-sum matrix for a symmetric zero-diagonal matrix.
 
     For a symmetric zero-diagonal matrix :math:`\mathbf{A} \in \mathbb{R}^{n \\times n}`, let 
     :math:`\mathbf{a} \in \mathbb{R}^{n(n-1)/2}` be its upper triangular part in a vector form. 
@@ -53,7 +53,7 @@ def vectorize_a_graph(G):
     return w
 
 def calc_data_vecs(X, normalize=False, S=None):
-    """Calculate data vectors of a set of graph signal data matrices.
+    r"""Calculate data vectors of a set of graph signal data matrices.
 
     Let :math:`\mathbf{X} \in \mathbb{R}^{n \\times p}` be a data matrix whose
     columns are graph signals on a graph with :math:`n` nodes. This function

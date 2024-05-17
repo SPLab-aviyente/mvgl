@@ -197,7 +197,7 @@ def _view_correlations(w_view, w):
 def learn_multiview_graph(X, alpha, beta, consensus, gamma=None, view_density=None, 
                           consensus_density=None, similarity=None, param_acc=0.01, 
                           n_iters=50):
-    """Learn a multiview graph from multiple sets of smooth graph signals.
+    r"""Learn a multiview graph from multiple sets of smooth graph signals.
 
     Assume we are given a set of data matrices :math:`\{\mathbf{X}^i\}_{i=1}^N`,
     where columns of :math:`\mathbf{X}^i \in \mathbb{R}^{n \\times p_i}` are
