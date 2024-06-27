@@ -8,7 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10"
-numpy = ">=1.26.2"
+numpy = "<2.0.0"
 pandas = {extras = ["feather", "parquet"], version = ">=2.2.2", optional = true}
 click = {version = "^8.1.7", optional = true}
 networkx = ">=3.2.1"
@@ -18,6 +18,7 @@ scikit-learn = ">=1.3.2"
 cvxpy = ">=1.5.1"
 numba = ">=0.59.1"
 
+diffcp = ">=1.0.23"
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.group.dev.dependencies]

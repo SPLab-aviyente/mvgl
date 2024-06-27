@@ -78,7 +78,7 @@ def gen_simulations_save_path(n_nodes, n_views, n_signals, graph_generator,
                 f"noise_{noise:.2f}")
 
 def gen_simulated_data(n_nodes, n_views, n_signals, graph_generator, perturbation, 
-                       noise, p = None, m = None, seed = None):
+                       signal_type: str, noise, p = None, m = None, seed = None):
     """Generate simulated multiview graph signals.
 
     Data is generated first by drawing a consensus graph :math:`G` using
@@ -144,8 +144,13 @@ def gen_simulated_data(n_nodes, n_views, n_signals, graph_generator, perturbatio
 
     Xv = []
     for s in range(n_views):
-        X = signals.gen_smooth_gs(Gv[s], n_signals[s], noise_amount=noise, 
-                                  rng=rng)
+        if signal_type == "smooth":
+            X = signals.gen_smooth_gs(Gv[s], n_signals[s], noise_amount=noise, 
+                                      rng=rng)
+        if signal_type == "stationary":
+            X = signals.gen_stationary_gs(Gv[s], n_signals[s], noise_amount=noise, 
+                                          rng=rng)
+        X = signals.gen_stationary_gs(Gv[s])
         Xv.append(X)
 
     return Gc, Gv, Xv
