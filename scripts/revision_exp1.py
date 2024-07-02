@@ -22,6 +22,7 @@ def main(
 ):
     n_views = 6
     n_nodes = 100
+    n_signals = 500
     rng = np.random.default_rng(seed)
     
     ###############################
@@ -38,7 +39,7 @@ def main(
     edges_to_remove = rng.choice(connected_pairs, n_edges_to_remove, replace=False)
     edges_to_add = rng.choice(unconnected_pairs, n_edges_to_add, replace=False)
 
-    wv_gt = np.repeat(wc_gt[..., None], 6, axis=1)
+    wv_gt = np.repeat(wc_gt[..., None], n_views, axis=1)
     for e in edges_to_remove:
         updates = rng.choice(n_views, n_views_to_change, replace=False)
         wv_gt[e, updates] = 0
@@ -53,24 +54,25 @@ def main(
     Gv = []
     Xv = []
     for v in range(n_views):
-        Wv = np.zeros(shape=(100, 100))
+        Wv = np.zeros(shape=(n_nodes, n_nodes))
         Wv[np.triu_indices_from(Wv, k=1)] = wv_gt[v]
         Wv += Wv.T
 
         Gv.append(nx.from_numpy_array(Wv))
-        Xv.append(mvgl.data.gen_smooth_gs(Gv[-1], 500))
+        Xv.append(mvgl.data.gen_smooth_gs(Gv[-1], n_signals))
 
     ####################
     ## GRAPH LEARNING ##
     ####################
 
     if method == "mvgl-l1":
-        densities = np.linspace(0.06, 0.2, 8, endpoint=True)
-        similarities = np.linspace(0.7, 0.9, 5, endpoint=True)
-        out = run_mvgl(Xv, "l1", False, densities, 0.8)
+        densities = np.linspace(0.06, 0.20, 8, endpoint=True)
+        similarities = np.linspace(0.7, 0.95, 6, endpoint=True)
+        out = run_mvgl(Xv, "l1", False, densities, similarities)
     elif method == "mvgl-l2": 
-        densities = np.linspace(0.06, 0.2, 8, endpoint=True)
-        out = run_mvgl(Xv, "l2", True, densities, 0.8)
+        densities = np.linspace(0.06, 0.20, 8, endpoint=True)
+        similarities = np.linspace(0.7, 0.95, 6, endpoint=True)
+        out = run_mvgl(Xv, "l2", True, densities, similarities)
 
     ############################# 
     ## PERFORMANCE CALCULATION ##
@@ -88,9 +90,15 @@ def main(
         for graph in ["view", "consensus"]:
             w_gt = wc_gt if graph == "consensus" else wv_gt
             case_similarity = None if graph == "consensus" else similarity
-            learned_similarity = None if graph == "consensus" else \
-                metrics.correlation(curr_out[graph], curr_out[graph])
 
+            if graph == "view":
+                learned_similarity = metrics.correlation(curr_out[graph], curr_out[graph])
+                learned_similarity = (
+                    np.mean((np.sum(learned_similarity, axis=1) - 1)/(n_views - 1))
+                )
+            else:
+                learned_similarity = None
+            
             performances["Run"].append(seed)
             performances["Method"].append(method)
             performances["F1"].append(np.mean(metrics.f1(w_gt, curr_out[graph])))
@@ -99,17 +107,23 @@ def main(
             performances["Similarity"].append(case_similarity)
             performances["LearnedDensity"].append(np.mean(metrics.density(curr_out[graph])))
             performances["LearnedSimilarity"].append(learned_similarity)
+            performances["RunTime"].append(curr_out["run time"])
     
+    ############################# 
+    ## PERFORMANCE CALCULATION ##
+    #############################
+
     if len(performances["Run"]) > 0:
         performances = pd.DataFrame.from_dict(performances)
 
         save_path = Path(
             mvgl.ROOT_DIR, "data", "simulations", "outputs", 
-            f"revision-exp1-{n_edges_to_add}-{n_edges_to_remove}-{n_views_to_change}"
+            f"revision-exp1-{n_edges_to_add}-{n_edges_to_remove}-{n_views_to_change}", 
+            method
         )
         save_path.mkdir(parents=True, exist_ok=True)
 
-        save_file = Path(save_path, f"{method}-run-{seed}")
+        save_file = Path(save_path, f"run-{seed}.csv")
 
         performances.to_csv(save_file)
 
