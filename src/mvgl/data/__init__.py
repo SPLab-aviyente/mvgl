@@ -150,7 +150,6 @@ def gen_simulated_data(n_nodes, n_views, n_signals, graph_generator, perturbatio
         if signal_type == "stationary":
             X = signals.gen_stationary_gs(Gv[s], n_signals[s], noise_amount=noise, 
                                           rng=rng)
-        X = signals.gen_stationary_gs(Gv[s])
         Xv.append(X)
 
     return Gc, Gv, Xv

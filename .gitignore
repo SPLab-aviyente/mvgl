@@ -1,6 +1,6 @@
-data/
-thirdparty/
-hpcc/
+/data/
+/thirdparty/
+/hpcc/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

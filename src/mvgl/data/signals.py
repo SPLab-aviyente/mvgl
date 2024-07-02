@@ -90,12 +90,12 @@ def gen_stationary_gs(G: nx.Graph, n_signals: int, filter_degree: int=5,
     rng = _input_checks._check_rng(rng)
 
     n_nodes = G.number_of_nodes()
-    laplacian = nx.laplacian_matrix(G).astype("float")
+    adjacency = nx.adjacency_matrix(G).astype("float")
 
     # Normalize the laplacian: Not sure about this, but signals values are too 
     # big otherwise
-    max_eig = sparse.linalg.eigsh(laplacian, k=1)[0][0]
-    laplacian /= max_eig
+    # max_eig = sparse.linalg.eigsh(laplacian, k=1)[0][0]
+    # laplacian /= max_eig
 
     # Sample filter coefficients
     filter_coeffs = rng.normal(size=filter_degree)
@@ -105,7 +105,7 @@ def gen_stationary_gs(G: nx.Graph, n_signals: int, filter_degree: int=5,
     curr_term = sparse.identity(n_nodes, format="csr")
     for i in range(filter_degree):
         filter_mat += filter_coeffs[i]*curr_term
-        curr_term = curr_term@laplacian
+        curr_term = curr_term@adjacency
 
     # Generate stationary signals
     white_noise = rng.multivariate_normal(
