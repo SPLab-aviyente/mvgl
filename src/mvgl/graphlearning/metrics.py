@@ -1,6 +1,6 @@
 import numpy as np
 
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, average_precision_score
 
 def _to_mv(data):
     if not isinstance(data, list):
@@ -120,3 +120,31 @@ def f1(w_gt, w_hat):
                         (w2 > 0).astype(int).squeeze())
 
     return _one_to_one(_f1, w_gt, w_hat)
+
+def auprc(w_gt, w_hat):
+    """Calculate AUPRC score between ground truth and learned graphs. 
+
+    Given ground truth graphs, :math:`\mathcal{G} = \{G^i\}_{i=1}^N`, 
+    and learned graphs :math:`\widehat{\mathcal{G}} = \{\widehat{G}^i\}_{i=1}^N`, 
+    this function calculates :math:`AUPRC(G^i, \widehat{G}^i)` for each :math:`i`. 
+
+    Parameters
+    ----------
+    w_gt : np.array or list of np.array
+        Upper triangular part of the adjacency matrices of ground truth graphs.
+        If not a list of `np.array`'s, it is assumed that :math:`N=1`.
+    w_hat : np.array or list of np.array
+        Upper triangular part of the adjacency matrices of learned graphs.
+        If not a list of `np.array`'s, it is assumed that :math:`N=1`.
+    
+    Returns
+    -------
+    auprcs : float or np.array
+        Calculated AUPRC scores. If :math:`N=1`, it is a single AUPRC score.
+    """
+    def _auprc(w1, w2):
+        return average_precision_score(
+            (w1 > 0).astype(int).squeeze(), w2.squeeze()
+        )
+
+    return _one_to_one(_auprc, w_gt, w_hat)
