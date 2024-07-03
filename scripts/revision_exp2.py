@@ -1,26 +1,17 @@
-r"""Script for edge addition-removal based experiments
+r"""Script for edge swapping based experiments
 
 In this script methods are applied to a datasets where view graphs are generated
-from the consensus graph by adding and/or removing edges. Namely, the script
-first generates a consensus graph :math:`G` with 100 nodes using either ER graph
-model (edge probability set 0.1) or BA graph model (growth parameter is set 5).
-6 view graphs are then generated from :math:`G` as follows: 
-
-- Initiate each view graph the same as :math:`G`.
-- Randomly select `n-edges-to-add` number of unconnected pairs from :math:`G`.
-Each selected pair is connected in randomly chosen `n-views-to-change` number
-of views. 
-- Randomly select `n-edges-to-remove` number of edges from :math:`G`. Each 
-selected edge is removed from randomly chosen `n-views-to-change` number of
-views.
-
+from the consensus graph using edge swapping. Namely, the script first generates
+a consensus graph :math:`G` with 100 nodes using either ER graph model (edge
+probability set 0.1) or BA graph model (growth parameter is set 5). 6 view 
+graphs are then independently generated from :math:`G` by randomly swapping 
+`perturbation` fraction of its edges.
 """
 
 from pathlib import Path
 
 import click
 import numpy as np
-import networkx as nx
 import pandas as pd
 
 import mvgl
@@ -32,54 +23,28 @@ from script_funs import run_mvgl, run_svgl
 @click.command()
 @click.option("--method", default="svgl", show_default=True)
 @click.option("--graph-model", default="er", show_default=True)
-@click.option("--n-edges-to-add", default=50, show_default=True)
-@click.option("--n-edges-to-remove", default=50, show_default=True)
-@click.option("--n-views-to-change", default=4, show_default=True)
+@click.option("--perturbation", default=0.1, show_default=True)
 @click.option("--seed", default=None, type=int, show_default=True)
 def main(
-    method, graph_model, n_edges_to_add, n_edges_to_remove, n_views_to_change, seed
+    method, graph_model, perturbation, seed
 ):
     n_views = 6
     n_nodes = 100
     n_signals = 500
-    rng = np.random.default_rng(seed)
     
     ###############################
     ## SIMULATED DATA GENERATION ##
     ###############################
 
-    # Generate the consensus graph
-    Gc = mvgl.data.gen_consensus_graph(n_nodes, graph_generator=graph_model, p=0.1, 
-                                       m=5, rng=rng)
-    wc_gt = utils.vectorize_a_graph(Gc)
+    Gc, Gv, Xv = mvgl.gen_simulated_data(
+        n_nodes, n_views, n_signals, graph_generator=graph_model, p=0.1, m=5, 
+        perturbation=perturbation, signal_type="smooth", noise=0.1, 
+    )
 
-    # Generate the views
-    connected_pairs = np.where(wc_gt == 1)[0]
-    unconnected_pairs = np.where(wc_gt == 0)[0]
-    edges_to_remove = rng.choice(connected_pairs, n_edges_to_remove, replace=False)
-    edges_to_add = rng.choice(unconnected_pairs, n_edges_to_add, replace=False)
-
-    wv_gt = np.repeat(wc_gt[..., None], n_views, axis=1)
-    for e in edges_to_remove:
-        updates = rng.choice(n_views, n_views_to_change, replace=False)
-        wv_gt[e, updates] = 0
-
-    for e in edges_to_add:
-        updates = rng.choice(n_views, n_views_to_change, replace=False)
-        wv_gt[e, updates] = 1
-
-    wv_gt = [wv_gt[:, v].squeeze() for v in range(n_views)]
-
-    # Generate the signals
-    Gv = []
-    Xv = []
-    for v in range(n_views):
-        Wv = np.zeros(shape=(n_nodes, n_nodes))
-        Wv[np.triu_indices_from(Wv, k=1)] = wv_gt[v]
-        Wv += Wv.T
-
-        Gv.append(nx.from_numpy_array(Wv))
-        Xv.append(mvgl.data.gen_smooth_gs(Gv[-1], n_signals))
+    wc_gt= utils.vectorize_a_graph(Gc)
+    wv_gt = []
+    for i in range(n_views):
+        wv_gt.append(utils.vectorize_a_graph(Gv[i]))
 
     ####################
     ## GRAPH LEARNING ##
@@ -144,10 +109,10 @@ def main(
     if len(performances["Run"]) > 0:
         performances = pd.DataFrame.from_dict(performances)
 
-        exp_folder = (f"revision-exp1-{graph_model}-{n_edges_to_add}-"
-                      f"{n_edges_to_remove}-{n_views_to_change}")
         save_path = Path(
-            mvgl.ROOT_DIR, "data", "simulations", "outputs", exp_folder, method
+            mvgl.ROOT_DIR, "data", "simulations", "outputs", 
+            f"revision-exp2-{graph_model}-{perturbation:.2f}", 
+            method
         )
         save_path.mkdir(parents=True, exist_ok=True)
 

@@ -5,6 +5,34 @@ from sklearn.preprocessing import scale
 
 import mvgl
 
+def run_svgl(X, densities):
+    if not isinstance(densities, np.ndarray):
+        densities = densities*np.ones(1)
+
+    n_views = len(X)
+    for i in range(n_views):
+        X[i] = scale(X[i].T).T
+
+    alpha = 0.1
+
+    out = {}
+    for density in densities:
+        wv_hat = []
+        run_times = []
+        for v in range(n_views):
+            wv, params, run_time = mvgl.learn_a_single_graph(X[v], alpha, density)
+            wv_hat.append(wv)
+            run_times.append(run_time)
+
+            alpha = params["alpha"]
+
+        out[(density, None)] = {
+            "view": wv_hat, "consensus": None, "run time": np.mean(run_times), 
+            "params": params
+        }
+
+    return out
+
 def run_mvgl(X, consensus, reg_consensus, densities, similarities):
     if not isinstance(densities, np.ndarray):
         densities = densities*np.ones(1)
