@@ -22,21 +22,6 @@ def _li_step(yi, zi, data_veci, S, alpha, rho, n):
 
     return _project_to_hyperplane(y, n)
 
-def _vi_step(zi, z, wi, beta, rho, consensus):
-    y = zi - z - wi/rho
-
-    scale = beta/rho
-
-    if consensus == "l2sq":
-        return (1/(1+2*scale))*y
-    elif consensus == "l2":
-        if np.linalg.norm(y, 2) == 0:
-            return y
-        else:
-            return np.maximum(0, 1-scale/np.linalg.norm(y, 2))*y
-    elif consensus == "l1":
-        return np.sign(y)*np.maximum(np.abs(y) - scale, 0)
-
 def _vi_step_mat(zi, z, wi, beta, rho, consensus):
     n_views = len(zi)
     n_pairs = len(z) # number of node pairs
@@ -188,11 +173,6 @@ def _run(data_vecs, alpha, beta, consensus, S=None, gamma=None, rho=1, max_iter=
     z = np.abs(z)
 
     return zi, z
-
-def _view_correlations(w_view, w):
-    # return jaccard_score(w_view>0, w>0)
-    # common_nnz = (w_view>0) & (w>0)
-    return np.corrcoef(np.squeeze(w_view), np.squeeze(w))[0,1]
 
 def learn_multiview_graph(X, alpha, beta, consensus, gamma=None, view_density=None, 
                           consensus_density=None, similarity=None, param_acc=0.01, 
