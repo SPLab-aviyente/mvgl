@@ -90,7 +90,7 @@ def correlation(w1, w2):
         :math:`M=1`, it is a single value.  
     """
     def _correlation(d1, d2):
-        return np.corrcoef(np.squeeze(d1>0).astype(int), np.squeeze(d2>0).astype(int))[0,1]
+        return np.corrcoef(np.squeeze(d1), np.squeeze(d2))[0,1]
 
     return _one_to_all(_correlation, w1, w2)
 
