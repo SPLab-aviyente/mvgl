@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import networkx as nx
 
@@ -118,5 +120,9 @@ def run(Xv: list[np.array], model: str, rho_n: float, rho_1: float,
     w = v + w
     m_P = (np.eye(n_nodes) - 2*(w@w.T)/(w.T@w))[:, 1:]
 
-    return _run_optimization(m_Qv, m_J, m_P, rho_n, rho_1, rho, max_iter)
+    st = time.time()
+    wv = _run_optimization(m_Qv, m_J, m_P, rho_n, rho_1, rho, max_iter)
+    run_time = time.time() - st 
+
+    return wv, run_time
     

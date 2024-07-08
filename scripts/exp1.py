@@ -18,17 +18,16 @@ import mvgl
 import mvgl.data
 from mvgl.graphlearning import utils, metrics
 
-from script_funs import run_mvgl, run_svgl
+from script_funs import run_mvgl, run_svgl, run_jemgl
 
 @click.command()
-@click.option("--method", default="svgl", show_default=True)
+@click.option("--method", default="jemgl-laplacian", show_default=True)
 @click.option("--graph-model", default="er", show_default=True)
-@click.option("--perturbation", default=0.1, show_default=True)
+@click.option("--n-views", default=6, show_default=True)
 @click.option("--seed", default=None, type=int, show_default=True)
 def main(
-    method, graph_model, perturbation, seed
+    method, graph_model, n_views, seed
 ):
-    n_views = 6
     n_nodes = 100
     n_signals = 500
     
@@ -38,7 +37,7 @@ def main(
 
     Gc, Gv, Xv = mvgl.gen_simulated_data(
         n_nodes, n_views, n_signals, graph_generator=graph_model, p=0.1, m=5, 
-        perturbation=perturbation, signal_type="smooth", noise=0.1, 
+        perturbation=0.1, signal_type="smooth", noise=0.1, 
     )
 
     wc_gt= utils.vectorize_a_graph(Gc)
@@ -61,6 +60,12 @@ def main(
     elif method == "svgl":
         densities = np.linspace(0.06, 0.20, 8, endpoint=True)
         out = run_svgl(Xv, densities)
+    elif method == "jemgl-group":
+        rho_ns = 10**(-2 + 2*np.arange(0, 21)/15)
+        out = run_jemgl(Xv, "group", rho_ns)
+    elif method == "jemgl-laplacian":
+        rho_ns = 10**(-2 + 2*np.arange(0, 21)/15)
+        out = run_jemgl(Xv, "laplacian", rho_ns)
 
     ############################# 
     ## PERFORMANCE CALCULATION ##
@@ -75,31 +80,34 @@ def main(
     for case, curr_out in out.items():
         density, similarity = case
 
-        for graph in ["view", "consensus"]:
-            
-            if curr_out[graph] is None:
-                continue
+        graphs = {"view": curr_out["view"]}
+        
+        if curr_out["consensus"] is None:
+            graphs["consensus-mean"] = np.mean(curr_out["view"], axis=0)
+            graphs["consensus-median"] = np.median(curr_out["view"], axis=0)
+        else:
+            graphs["consensus"] = curr_out["consensus"]
 
-            w_gt = wc_gt if graph == "consensus" else wv_gt
-            case_similarity = None if graph == "consensus" else similarity
+        for graph, w_hat in graphs.items():
+            w_gt = wc_gt if graph.startswith("consensus") else wv_gt
+            case_similarity = None if graph.startswith("consensus") else similarity
 
             if graph == "view":
-                learned_similarity = metrics.correlation(curr_out[graph], curr_out[graph])
-                learned_similarity = (
-                    np.mean((np.sum(learned_similarity, axis=1) - 1)/(n_views - 1))
-                )
+                similarities_hat = metrics.correlation(w_hat, w_hat)
+                similarities_hat = similarities_hat[np.triu_indices(len(w_hat), k=1)]
+                similarity_hat = np.mean(similarities_hat)
             else:
-                learned_similarity = None
+                similarity_hat = None
             
             performances["Run"].append(seed)
             performances["Method"].append(method)
-            performances["F1"].append(np.mean(metrics.f1(w_gt, curr_out[graph])))
-            performances["AUPRC"].append(np.mean(metrics.auprc(w_gt, curr_out[graph])))
+            performances["F1"].append(np.mean(metrics.f1(w_gt, w_hat)))
+            performances["AUPRC"].append(np.mean(metrics.auprc(w_gt, w_hat)))
             performances["Graph"].append(graph)
             performances["Density"].append(density)
             performances["Similarity"].append(case_similarity)
-            performances["LearnedDensity"].append(np.mean(metrics.density(curr_out[graph])))
-            performances["LearnedSimilarity"].append(learned_similarity)
+            performances["LearnedDensity"].append(np.mean(metrics.density(w_hat)))
+            performances["LearnedSimilarity"].append(similarity_hat)
             performances["RunTime"].append(curr_out["run time"])
     
     ############################# 
@@ -111,8 +119,7 @@ def main(
 
         save_path = Path(
             mvgl.ROOT_DIR, "data", "simulations", "outputs", 
-            f"revision-exp2-{graph_model}-{perturbation:.2f}", 
-            method
+            f"exp1-{graph_model}-{n_views:d}", method
         )
         save_path.mkdir(parents=True, exist_ok=True)
 

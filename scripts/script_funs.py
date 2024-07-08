@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.preprocessing import scale
 
 import mvgl
+from mvgl.thirdparty import jemgl
 
 def run_svgl(X, densities):
     if not isinstance(densities, np.ndarray):
@@ -61,5 +62,33 @@ def run_mvgl(X, consensus, reg_consensus, densities, similarities):
         alpha = params["alpha"]
         beta = params["beta"]
         gamma = params["gamma"]
+
+    return out
+
+def run_jemgl(X, model, rho_ns):
+    if not isinstance(rho_ns, np.ndarray):
+        rho_ns = rho_ns*np.ones(1)
+
+    out = {}
+    n_views = len(X)
+    for rho_n in rho_ns:
+        wv_hat, run_time = jemgl.run(X, model, rho_n, rho_1=1)
+
+        # Thresholding
+        all_weights = []
+        for i in range(n_views):
+            all_weights.extend(wv_hat[i][wv_hat[i] > 0])
+
+        quantiles = np.linspace(0.0, 0.96, 49, endpoint=True)
+        ths = np.quantile(all_weights, q=quantiles)
+        for i, th in enumerate(ths):
+            wv_hat_th = []
+            for v in range(n_views):
+                wv_hat_th.append(wv_hat[v].copy())
+                wv_hat_th[-1][(wv_hat_th[-1] < th)] = 0
+
+            out[(quantiles[i], rho_n)] = {
+                "view": wv_hat_th, "consensus": None, "run time": run_time
+            }
 
     return out
