@@ -1,6 +1,8 @@
 import numpy as np
 
-from sklearn.metrics import f1_score, average_precision_score
+from sklearn.metrics import (f1_score, average_precision_score, accuracy_score,
+                             normalized_mutual_info_score, precision_score, 
+                             recall_score)
 
 def _to_mv(data):
     if not isinstance(data, list):
@@ -148,3 +150,115 @@ def auprc(w_gt, w_hat):
         )
 
     return _one_to_one(_auprc, w_gt, w_hat)
+
+def accuracy(w_gt, w_hat):
+    """Calculate accuracy score between ground truth and learned graphs. 
+
+    Given ground truth graphs, :math:`\mathcal{G} = \{G^i\}_{i=1}^N`, 
+    and learned graphs :math:`\widehat{\mathcal{G}} = \{\widehat{G}^i\}_{i=1}^N`, 
+    this function calculates :math:`Accuracy(G^i, \widehat{G}^i)` for each :math:`i`. 
+
+    Parameters
+    ----------
+    w_gt : np.array or list of np.array
+        Upper triangular part of the adjacency matrices of ground truth graphs.
+        If not a list of `np.array`'s, it is assumed that :math:`N=1`.
+    w_hat : np.array or list of np.array
+        Upper triangular part of the adjacency matrices of learned graphs.
+        If not a list of `np.array`'s, it is assumed that :math:`N=1`.
+    
+    Returns
+    -------
+    auprcs : float or np.array
+        Calculated accuracy scores. If :math:`N=1`, it is a single score.
+    """
+    def _accuracy(w1, w2):
+        return accuracy_score(
+            (w1 > 0).astype(int).squeeze(), (w2 > 0).astype(int).squeeze()
+        )
+
+    return _one_to_one(_accuracy, w_gt, w_hat)
+
+def nmi(w_gt, w_hat):
+    """Calculate NMI between ground truth and learned graphs. 
+
+    Given ground truth graphs, :math:`\mathcal{G} = \{G^i\}_{i=1}^N`, 
+    and learned graphs :math:`\widehat{\mathcal{G}} = \{\widehat{G}^i\}_{i=1}^N`, 
+    this function calculates :math:`NMI(G^i, \widehat{G}^i)` for each :math:`i`. 
+
+    Parameters
+    ----------
+    w_gt : np.array or list of np.array
+        Upper triangular part of the adjacency matrices of ground truth graphs.
+        If not a list of `np.array`'s, it is assumed that :math:`N=1`.
+    w_hat : np.array or list of np.array
+        Upper triangular part of the adjacency matrices of learned graphs.
+        If not a list of `np.array`'s, it is assumed that :math:`N=1`.
+    
+    Returns
+    -------
+    auprcs : float or np.array
+        Calculated NMI values. If :math:`N=1`, it is a single value.
+    """
+    def _nmi(w1, w2):
+        return normalized_mutual_info_score(
+            (w1 > 0).astype(int).squeeze(), (w2 > 0).astype(int).squeeze()
+        )
+
+    return _one_to_one(_nmi, w_gt, w_hat)
+
+def precision(w_gt, w_hat):
+    """Calculate precision score between ground truth and learned graphs. 
+
+    Given ground truth graphs, :math:`\mathcal{G} = \{G^i\}_{i=1}^N`, 
+    and learned graphs :math:`\widehat{\mathcal{G}} = \{\widehat{G}^i\}_{i=1}^N`, 
+    this function calculates :math:`Precision(G^i, \widehat{G}^i)` for each :math:`i`. 
+
+    Parameters
+    ----------
+    w_gt : np.array or list of np.array
+        Upper triangular part of the adjacency matrices of ground truth graphs.
+        If not a list of `np.array`'s, it is assumed that :math:`N=1`.
+    w_hat : np.array or list of np.array
+        Upper triangular part of the adjacency matrices of learned graphs.
+        If not a list of `np.array`'s, it is assumed that :math:`N=1`.
+    
+    Returns
+    -------
+    auprcs : float or np.array
+        Calculated precision scores. If :math:`N=1`, it is a single score.
+    """
+    def _precision(w1, w2):
+        return precision_score(
+            (w1 > 0).astype(int).squeeze(), (w2 > 0).astype(int).squeeze()
+        )
+
+    return _one_to_one(_precision, w_gt, w_hat)
+
+def recall(w_gt, w_hat):
+    """Calculate recall score between ground truth and learned graphs. 
+
+    Given ground truth graphs, :math:`\mathcal{G} = \{G^i\}_{i=1}^N`, 
+    and learned graphs :math:`\widehat{\mathcal{G}} = \{\widehat{G}^i\}_{i=1}^N`, 
+    this function calculates :math:`Recall(G^i, \widehat{G}^i)` for each :math:`i`. 
+
+    Parameters
+    ----------
+    w_gt : np.array or list of np.array
+        Upper triangular part of the adjacency matrices of ground truth graphs.
+        If not a list of `np.array`'s, it is assumed that :math:`N=1`.
+    w_hat : np.array or list of np.array
+        Upper triangular part of the adjacency matrices of learned graphs.
+        If not a list of `np.array`'s, it is assumed that :math:`N=1`.
+    
+    Returns
+    -------
+    auprcs : float or np.array
+        Calculated recall scores. If :math:`N=1`, it is a single score.
+    """
+    def _recall(w1, w2):
+        return recall_score(
+            (w1 > 0).astype(int).squeeze(), (w2 > 0).astype(int).squeeze()
+        )
+
+    return _one_to_one(_recall, w_gt, w_hat)
