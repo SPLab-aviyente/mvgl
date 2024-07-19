@@ -104,7 +104,7 @@ def calc_data_vecs(X, normalize=False, S=None):
     if S is None:
         S = rowsum_mat(X[0].shape[0])
     
-    
+    normalizer = -1
     n_views = len(X)
     data_vecs = []
     for v in range(n_views):
@@ -116,9 +116,14 @@ def calc_data_vecs(X, normalize=False, S=None):
 
         if np.ndim(data_vecs[-1]) == 1:
             data_vecs[-1] = data_vecs[-1][:, None]
-        
-        # Normalize the data vector by its infinity norm
-        if normalize:
-            data_vecs[-1] /= np.max(np.abs(data_vecs[-1]))
+
+        data_vec_inf_norm = np.max(np.abs(data_vecs[-1]))
+        if data_vec_inf_norm > normalizer:
+            normalizer = data_vec_inf_norm
+
+    # Normalize the data vector by its infinity norm
+    if normalize:
+        for v in range(n_views):
+            data_vecs[v] /= normalizer
 
     return data_vecs if n_views > 1 else data_vecs[0]
