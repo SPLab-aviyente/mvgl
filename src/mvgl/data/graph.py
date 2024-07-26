@@ -2,6 +2,8 @@ import copy
 import networkx as nx
 import numpy as np
 
+from scipy.spatial.distance import pdist, squareform
+
 from mvgl import exceptions
 from mvgl import _input_checks
 
@@ -88,7 +90,15 @@ def swap_edges(G, n_swaps, rng=None):
 
     return G
 
-def gen_consensus_graph(n_nodes, graph_generator, p=None, m=None, rng=None):
+def rand_geometric_graph(n_nodes, sigma=0.25, th=0.6, rng=None):
+    points = rng.uniform(0, 1, size=(n_nodes, 2))
+    dists = pdist(points, "sqeuclidean")
+    rbf = np.exp(-dists/(sigma**2))
+    rbf[rbf < th] = 0
+    return nx.from_numpy_array(squareform(rbf))
+
+def gen_consensus_graph(n_nodes, graph_generator, p=None, m=None, sigma=None, 
+                        th=None, rng=None):
     """Generate the consensus graph using Erdos-Renyi or Barabasi-Albert model.
 
     Parameters
@@ -96,13 +106,19 @@ def gen_consensus_graph(n_nodes, graph_generator, p=None, m=None, rng=None):
     n_nodes : int
         Number of nodes
     graph_generator : str
-        The model to use. Must be 'er' or 'ba'.
+        The model to use. Must be one of 'er', 'ba', or 'rgg'.
     p : float, optional
         The edge probability for Erdos-Renyi model. Ignored if graph_generator
-        is 'ba'. By default None.
+        is 'ba' or . By default None.
     m : int, optional
         Growth parameter for Barabasi-Albert model. Ignored if graph generator
         is 'er'. By default None
+    sigma : float, optional
+        Scale of the RBF kernel used when generating random geometric graph. 
+        Ignored if graph generator is 'er' or 'ba'. By default None.
+    th : float, optional
+        Threshold used when generating random geometric graph. Ignored if graph 
+        generator is 'er' or 'ba'. By default None.
     rng : np.random.Generator, optional
         Random number generator. If one wants the function to return the same 
         output every time, this needs to be set. By default None
@@ -125,6 +141,8 @@ def gen_consensus_graph(n_nodes, graph_generator, p=None, m=None, rng=None):
         graph_generator = lambda : nx.erdos_renyi_graph(n_nodes, p, seed=rng)
     elif graph_generator == "ba":
         graph_generator = lambda : nx.barabasi_albert_graph(n_nodes, m, seed=rng)
+    elif graph_generator == "rgg":
+        graph_generator = lambda : rand_geometric_graph(n_nodes, sigma, th, rng)
 
     # Generate the consensus graph, ensure that it is a connected graph
     G = ensure_connectedness(graph_generator)
